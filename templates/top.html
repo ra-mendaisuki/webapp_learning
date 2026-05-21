@@ -7,7 +7,13 @@
 <body>
     <header>
         <!-- 「login_user_name」変数の値で差し替え -->
-        <h1>掲示板のトップページ - {{ login_user_name }}さん</h1>
+        <h1>
+            {% if login_user_name %}
+            掲示板のトップページ - {{ login_user_name }}さん
+            {% else %}
+            掲示板のトップページ - ゲストさん
+            {% endif %}
+        </h1>
         <!-- メニュー -->
         <nav>
             <ul>
@@ -22,6 +28,14 @@
             </ul>
         </nav>
     </header>
+    <main>
+        {% for message in message_list %}
+        <article>
+            <p>{{ message.id }} - {{ message.user_name }}</p>
+            <p>{{ message.contents }}</p>
+        </article>
+        {% endfor %}
+    </main>
 
 </body>
 </html>
