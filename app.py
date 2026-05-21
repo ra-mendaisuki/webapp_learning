@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 
 app: Flask = Flask(__name__)
 
@@ -6,27 +6,14 @@ app: Flask = Flask(__name__)
 # 「/」にアクセスがあった場合のルーティング
 @app.route('/')
 def index():
-    return "<h1> これは掲示板のトップページです </h1>"
+    login_user_name: str = "osamu"
+    return render_template("top.html", login_user_name=login_user_name)
 
 
-# 「/write」にGETメソッドでアクセスがあった場合のルーティング
-@app.route("/write", methods=['GET'])
-def write_by_get_method():
-    return """
-    <html><body>
-    <h1>これは掲示板の書き込みページです。</h1>
-    <h3>書き込み内容</h3>
-    <form action="/write" method="post">
-        <textarea name="msg" rows="5" cols="70"></textarea><br/><br/>
-        <input type="submit" value="書き込み">
-    </form>
-    </body></html>
-    """
-
-# 「/write」にPOSTメソッドでアクセスがあった場合のルーティング
-@app.route("/write", methods=['POST'])
-def write_by_post_method():
-    return "<h1>書き込みを受け付けました</h1>"
+# 「/write」でアクセスがあった場合のルーティング
+@app.route("/write")
+def write():
+    return render_template("write.html")
 
 # 「/edit/message_id」にアクセスが合った場合のルーティング
 @app.route("/edit/<int:message_id>")
