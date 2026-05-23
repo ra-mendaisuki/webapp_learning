@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request
 
 class Message:
@@ -44,8 +46,22 @@ def index():
 # 「/write」でアクセスがあった場合のルーティング
 @app.route("/write", methods=["POST", "GET"])
 def write():
-    return render_template("write.html")
+    # GET method
+    if request.method == "GET":
+        return render_template("write.html", login_user_name=login_user_name)
 
+    # POST method
+    elif request.method == "POST":
+        id: str = datetime.now().strftime("%Y%m%d%H%M%S")
+        contents: str = request.form.get("contents")
+        user_name: str = request.form.get("user_name")
+        if contents:
+            message_list.insert(0, Message(id, user_name, contents))
+        return render_template(
+            "write.html",
+            login_user_name=login_user_name,
+            message_list=message_list
+        )
 # 「/edit/message_id」にアクセスが合った場合のルーティング
 @app.route("/edit/<int:message_id>")
 def edit(message_id):

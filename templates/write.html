@@ -9,5 +9,9 @@
 {% endblock %}
 
 {% block contents %}
-{{ super() }}
+    <form action="{{ url_for('write') }}" method="POST">
+    <p><textarea name="contents" rows="5" cols="60"></textarea></p>
+    <input type="hidden" name="user_name" value="{{ login_user_name }}">
+    <input type="submit" value="書き込み">
+    </form>
 {% endblock %}
