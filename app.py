@@ -42,7 +42,7 @@ def signup():
     elif request.method == "POST":
         username: str = request.form.get("username")
         password: str = request.form.get("password")
-        user = User(username=username, password=generate_password_hash((password)))
+        user = User(username=username, password=generate_password_hash(password))
         db.session.add(user)
         db.session.commit()
         return redirect(url_for("login"))
