@@ -27,8 +27,8 @@ class Message(db.Model):
     contents = db.Column(db.String(100))
 
 @login_manager.user_loader
-def load_user(user_id: int):
-    return User.query.get(user_id)
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.before_request
 def set_login_user_name():
@@ -45,17 +45,20 @@ def signup():
         user = User(username=username, password=generate_password_hash(password))
         db.session.add(user)
         db.session.commit()
-        return redirect(url_for("login"))
+        return redirect('login')
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "GET":
-        render_template("login.html")
+        return render_template("login.html")
 
     elif request.method == "POST":
         username: str = request.form.get("username")
         password: str = request.form.get("password")
         user = User.query.filter_by(username=username).first()
+        if user is None:
+            return redirect('/login')
+
         if check_password_hash(user.password, password):
             login_user(user)
             return redirect('/')
