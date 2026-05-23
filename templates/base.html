@@ -35,7 +35,7 @@
             </li>
             {% endif %}
 
-            {% if login_user_name %}
+            {% if not login_user_name %}
                 <li>
                     <!-- 「/signup」にアクセスするURLを作成 -->
                     <a href="{{ url_for('signup') }}">アカウント登録ページ</a>
