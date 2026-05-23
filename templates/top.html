@@ -14,10 +14,18 @@
 {% endblock %}
 
 {% block contents %}
+    <section>
+    <form action="{{ url_for('index') }}" method="GET">
+        <input type="search" name="search_word" value="{{ search_word }}">
+        <input type="submit" value="検索">
+    </form>
+    </section>
 {% for message in message_list %}
-<article>
-    <p>{{ message.id }} - {{ message.user_name }}</p>
-    <p>{{ message.contents }}</p>
-</article>
+    <section>
+        <article>
+            <p>{{ message.id }} - {{ message.user_name }}</p>
+            <p>{{ message.contents }}</p>
+        </article>
+    </section>
 {% endfor %}
 {% endblock %}
