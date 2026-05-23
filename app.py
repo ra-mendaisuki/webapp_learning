@@ -1,133 +1,34 @@
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-
-from flask_login import LoginManager, UserMixin, login_user, current_user, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
-import os
+from flask import Flask, render_template
+from flask_socketio import SocketIO, send, emit
+from pymongo import MongoClient
 
 # グローバル変数の宣言
 app: Flask = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
-db = SQLAlchemy(app)
 
-# ログインマネージャーの設定
-app.config["SECRET_KEY"] = os.urandom(24)
-login_manager: LoginManager = LoginManager()
-login_manager.init_app(app)
+socketio = SocketIO(app)
 
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), nullable=False, unique=True)
-    password = db.Column(db.String(25))
-
-class Message(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_name = db.Column(db.String(100))
-    contents = db.Column(db.String(100))
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-@app.before_request
-def set_login_user_name():
-    global login_user_name
-    login_user_name = current_user.username if current_user.is_authenticated else None
-
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    if request.method == "GET":
-        return render_template("signup.html")
-    elif request.method == "POST":
-        username: str = request.form.get("username")
-        password: str = request.form.get("password")
-        user = User(username=username, password=generate_password_hash(password))
-        db.session.add(user)
-        db.session.commit()
-        return redirect('login')
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    if request.method == "GET":
-        return render_template("login.html")
-
-    elif request.method == "POST":
-        username: str = request.form.get("username")
-        password: str = request.form.get("password")
-        user = User.query.filter_by(username=username).first()
-        if user is None:
-            return redirect('/login')
-
-        if check_password_hash(user.password, password):
-            login_user(user)
-            return redirect('/')
-
-@app.route("/logout")
-def logout():
-    logout_user()
-    return redirect('/')
+mongo_uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.6xnpzdi.mongodb.net/"
+client = MongoClient(mongo_uri)
+db = client["SNS"]
+messages_collection = db["messages"]
 
 # 「/」にアクセスがあった場合のルーティング
 @app.route('/')
 def index():
-    # GETメソッドのフォームの値を取得
-    search_word: str = request.args.get("search_word")
+    return render_template("index.html")
 
-    # search_word変数の有無を判定
-    if search_word is None:
-        message_list: list[Message] = Message.query.all()
-    else:
-        message_list: list[Message] = Message.query.filter(Message.contents.like(f"%{search_word}%")).all()
-    return render_template(
-        "top.html",
-        login_user_name=login_user_name,
-        message_list=message_list,
-        search_word=search_word
-    )
+@socketio.on('load messages')
+def load_messages():
+    messages = messages_collection.find().sort('_id', -1).limit(10)
+    messages = list(messages)[::-1]
+    messages_return = [message['message'] for message in messages]
+    emit('load all messages', messages_return)
 
-# 「/write」でアクセスがあった場合のルーティング
-@app.route("/write", methods=["POST", "GET"])
-def write():
-    # GET method
-    if request.method == "GET":
-        return render_template("write.html", login_user_name=login_user_name)
-
-    # POST method
-    elif request.method == "POST":
-        contents: str = request.form.get("contents")
-        user_name: str = request.form.get("user_name")
-        new_message: Message = Message(user_name=user_name, contents=contents)
-        db.session.add(new_message)
-
-        db.session.commit()
-
-        return redirect(url_for("index"))
-
-@app.route("/update/<int:message_id>", methods=["POST", "GET"])
-def update(message_id:int):
-    message: Message = Message.query.get(message_id)
-
-    if request.method == "GET":
-        return render_template("update.html", login_user_name=login_user_name, message=message)
-
-    elif request.method == "POST":
-        message.contents = request.form.get("contents")
-        db.session.commit()
-
-        return redirect(url_for("index"))
-
-@app.route("/delete/<int:message_id>")
-def delete(message_id: int):
-    message: Message = Message.query.get(message_id)
-    db.session.delete(message)
-    db.session.commit()
-
-    return redirect(url_for("index"))
-
-# データベースの初期化
-with app.app_context():
-    db.create_all()
+@socketio.on('send message')
+def send_message(message):
+    messages_collection.insert_one({'message': message})
+    emit('load one message', message, broadcast=True)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    socketio.run(app, debug=True)
