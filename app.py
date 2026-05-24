@@ -64,5 +64,9 @@ def skip():
     who = utils.toggle(who)
     return redirect(url_for("index", who=me, token=tc.get_token(me)))
 
+@app.route("/space_attack")
+def space_attack():
+    return render_template("space_attack.html")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True, port=8888) # Flaskのサーバーを起動
