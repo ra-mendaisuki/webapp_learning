@@ -8,7 +8,7 @@ app: Flask = Flask(__name__)
 
 socketio = SocketIO(app)
 
-mongo_uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.6xnpzdi.mongodb.net/?appName=Cluster0"
+mongo_uri = ""
 # Create a new client and connect to the server
 client = MongoClient(mongo_uri, server_api=ServerApi('1'))
 db = client["SNS"]
