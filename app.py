@@ -2,14 +2,15 @@ from datetime import datetime
 from flask import Flask, render_template
 from flask_socketio import SocketIO, send, emit
 from pymongo import MongoClient
-
+from pymongo.server_api import ServerApi
 # グローバル変数の宣言
 app: Flask = Flask(__name__)
 
 socketio = SocketIO(app)
 
 mongo_uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.6xnpzdi.mongodb.net/?appName=Cluster0"
-client = MongoClient(mongo_uri)
+# Create a new client and connect to the server
+client = MongoClient(mongo_uri, server_api=ServerApi('1'))
 db = client["SNS"]
 messages_collection = db["messages"]
 
