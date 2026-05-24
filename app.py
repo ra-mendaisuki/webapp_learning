@@ -8,7 +8,7 @@ app: Flask = Flask(__name__)
 
 socketio = SocketIO(app)
 
-mongo_uri = "mongodb+srv://dbUser:<db_password>@cluster0.6xnpzdi.mongodb.net/?appName=Cluster0"
+mongo_uri = "mongodb+srv://dbUser:dbUserPassword@cluster0.6xnpzdi.mongodb.net/?appName=Cluster0"
 client = MongoClient(mongo_uri)
 db = client["SNS"]
 messages_collection = db["messages"]
